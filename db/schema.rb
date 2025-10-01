@@ -29,8 +29,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_01_051639) do
     t.text "description"
     t.string "job_type"
     t.integer "salary"
+    t.uuid "company_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["company_id"], name: "index_jobs_on_company_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -49,4 +51,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_01_051639) do
   end
 
   add_foreign_key "companies", "users"
+  add_foreign_key "jobs", "companies"
 end

@@ -6,7 +6,7 @@ class User < ApplicationRecord
   
   has_one :company, dependent: :destroy
 
-  validates_presence_of :first_name, :last_name, :user_type
-
-  enum user_type: { admin: 0, employer: 1, job_seeker: 2 }
+  validates_presence_of :first_name, :last_name
+  
+  enum :user_type, { admin: 0, employer: 1, seeker: 2 }
 end

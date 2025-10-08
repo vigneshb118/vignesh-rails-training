@@ -5,11 +5,15 @@ class CompanyPolicy < ApplicationPolicy
     user&.employer?
   end
 
+  def employer_owns_record?
+    user&.employer? && record.user == user
+  end
+
   alias_method :new?,    :employer_actions?
   alias_method :create?, :employer_actions?
-  alias_method :show?,   :employer_actions?
-  alias_method :edit?,   :employer_actions?
-  alias_method :update?, :employer_actions?
+  alias_method :show?,   :employer_owns_record?
+  alias_method :edit?,   :employer_owns_record?
+  alias_method :update?, :employer_owns_record?
 
   class Scope < Scope
     def resolve

@@ -1,7 +1,7 @@
 class CompaniesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_company, only: [:show, :edit, :update]
-  before_action :authorize_company, only: [:edit, :update]
+  before_action :authorize_company, only: [:show, :edit, :update]
 
   def show
   end
@@ -35,7 +35,7 @@ class CompaniesController < ApplicationController
   private
   
   def set_company
-    @company = current_user.company
+    @company = Company.find(params[:id])
   end
 
   def company_params

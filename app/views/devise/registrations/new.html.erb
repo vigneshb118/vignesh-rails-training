@@ -31,6 +31,11 @@
     <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
   </div>
 
+  <div class="field">
+    <%= f.label :user_type %><br />
+    <%= f.select :user_type, User.user_types.keys[1..-1].map { |type| [type.humanize, type] } %>
+  </div>
+
   <div class="actions">
     <%= f.submit "Sign up" %>
   </div>

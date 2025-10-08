@@ -1,0 +1,11 @@
+<%= form_for @job do |f| %>
+  <%= f.label :title %>
+  <%= f.text_field :title %>
+  <%= f.label :description %>
+  <%= f.text_area :description %>
+  <%= f.label :job_type %>
+  <%= f.select :job_type, Job.job_types.keys %>
+  <%= f.label :salary %>
+  <%= f.number_field :salary %>
+  <%= f.submit "#{controller.action_name.capitalize} Job", class: "btn btn-primary" %>
+<% end %>

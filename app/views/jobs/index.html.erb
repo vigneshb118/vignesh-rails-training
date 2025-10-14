@@ -3,4 +3,9 @@
   <%= link_to "New Job", new_job_path %>
 <% end %>
 <br>
-<%= render @jobs %>
+<%= turbo_frame_tag "jobs" do %>
+<% @jobs.each do |job| %>
+    <%= render job %>
+    <br>
+<% end %>
+<% end %>

@@ -7,5 +7,5 @@
   <%= f.select :job_type, Job.job_types.keys %>
   <%= f.label :salary %>
   <%= f.number_field :salary %>
-  <%= f.submit "#{controller.action_name.capitalize} Job", class: "btn btn-primary" %>
+  <%= f.submit "#{controller.action_name.capitalize} Job", class: "btn btn-primary", data: { turbo_frame: "_top" } %>
 <% end %>

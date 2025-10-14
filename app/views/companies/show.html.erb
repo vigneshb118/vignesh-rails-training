@@ -1,3 +1,6 @@
+<%= turbo_frame_tag "company" do %>
+<h1>Company</h1>
 <%= @company.name %>
 <%= @company.description %>
-<%= link_to "Edit", edit_company_path(@company) %>
+<%= link_to "Edit", edit_company_path(@company), data: { turbo_frame: "_top" } %>
+<% end %>

@@ -15,7 +15,7 @@ class CompaniesController < ApplicationController
     @company = Company.new(company_params)
     @company.user = current_user
     if @company.save!
-      redirect_to @company, notice: "Company created successfully"
+      redirect_to @company
     else
       render :new
     end
@@ -26,14 +26,14 @@ class CompaniesController < ApplicationController
 
   def update
     if @company.update!(company_params)
-      redirect_to @company, notice: "Company updated successfully"
+      redirect_to @company
     else
       render :edit
     end
   end
 
   private
-  
+
   def set_company
     @company = Company.find(params[:id])
   end

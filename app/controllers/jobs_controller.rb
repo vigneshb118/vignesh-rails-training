@@ -1,6 +1,6 @@
 class JobsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_job, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_job, only: [ :show, :edit, :update, :destroy, :change_status ]
   before_action :authorize_job, only: [ :edit, :update, :destroy ]
 
   def index
@@ -31,12 +31,16 @@ class JobsController < ApplicationController
 
   def update
     if @job.update(job_params)
-      respond_to do |format|
-        format.html { redirect_to jobs_path }
-        format.turbo_stream
-      end
+      redirect_to jobs_path
     else
       render :edit
+    end
+  end
+
+  def change_status
+    @job.update(job_params)
+    respond_to do |format|
+      format.turbo_stream
     end
   end
 

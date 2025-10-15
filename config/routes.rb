@@ -16,6 +16,9 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   root "jobs#index"
 
-  resources :jobs
+  resources :jobs do
+    patch :change_status, on: :member
+  end
+
   resources :companies
 end

@@ -1,13 +1,15 @@
-<%= job.title %>
-<%= job.description %>
-<%= job.job_type %>
-<%= job.salary %>
-<% if action_name == "index" %>
-<%= link_to "Show", job_path(job), data: { turbo_frame: "_top" } %>
-<% end %>
-<% if policy(job).edit? %>
-  <%= link_to "Edit", edit_job_path(job) %>
-<% end %>
-<% if policy(job).destroy? %>
-  <%= link_to "Delete", job, data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to delete this job?", turbo_frame: "_top" } %>
+<%= turbo_frame_tag "job_#{job.id}" do %>
+  <%= job.title %>
+  <%= job.description %>
+  <%= job.job_type %>
+  <%= job.salary %>
+  <% if action_name == "index" %>
+  <%= link_to "Show", job_path(job), data: { turbo_frame: "_top" } %>
+  <% end %>
+  <% if policy(job).edit? %>
+    <%= link_to "Edit", edit_job_path(job), data: { turbo_frame: "_top" } %>
+  <% end %>
+  <% if policy(job).archive? %>
+    <%= link_to job.archived? ? 'Reopen' : 'Archive', job_path(job, job: { status: job.archived? ? 'open' : 'archived' }), data: { turbo_method: :patch } %>
+  <% end %>
 <% end %>

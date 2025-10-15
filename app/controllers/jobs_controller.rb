@@ -4,7 +4,7 @@ class JobsController < ApplicationController
   before_action :authorize_job, only: [ :edit, :update, :destroy ]
 
   def index
-    @jobs = Job.all
+    @jobs = Job.open
   end
 
   def show
@@ -31,7 +31,10 @@ class JobsController < ApplicationController
 
   def update
     if @job.update(job_params)
-      redirect_to jobs_path
+      respond_to do |format|
+        format.html { redirect_to jobs_path }
+        format.turbo_stream
+      end
     else
       render :edit
     end
@@ -49,7 +52,7 @@ class JobsController < ApplicationController
   end
 
   def job_params
-    params.require(:job).permit(:title, :description, :job_type, :salary)
+    params.require(:job).permit(:title, :description, :job_type, :salary, :status)
   end
 
   def authorize_job

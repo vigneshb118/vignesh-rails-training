@@ -17,7 +17,7 @@ class JobPolicy < ApplicationPolicy
     employer_owns_record?
   end
 
-  def destroy?
+  def archive?
     employer_owns_record?
   end
 

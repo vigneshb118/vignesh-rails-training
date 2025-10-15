@@ -27,9 +27,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_01_051639) do
   create_table "jobs", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title"
     t.text "description"
-    t.string "job_type"
+    t.integer "job_type"
     t.integer "salary"
     t.uuid "company_id", null: false
+    t.integer "status", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["company_id"], name: "index_jobs_on_company_id"

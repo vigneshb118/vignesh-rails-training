@@ -4,3 +4,6 @@
 <%= @company.description %>
 <%= link_to "Edit", edit_company_path(@company), data: { turbo_frame: "_top" } %>
 <% end %>
+<br>
+<h2>Jobs</h2>
+<%= render @company.jobs %>

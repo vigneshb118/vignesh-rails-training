@@ -61,3 +61,7 @@ gem "devise"
 gem "letter_opener"
 
 gem "pundit"
+
+gem "tailwindcss-rails", "~> 4.3"
+
+gem "foreman"

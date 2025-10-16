@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+@layer base {
+    button {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"] {
+      @apply border rounded-md p-1 w-auto focus:ring focus:ring-blue-400 mt-2 mb-2;
+    }
+    
+    input[type="submit"],
+    button[type="submit"] {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg;
+    }
+
+    select {
+        @apply border rounded-md p-2 w-auto focus:ring focus:ring-blue-400 mt-2 mb-4;
+    }
+}
+
+@layer components {
+    .card {
+        @apply bg-white border border-gray-200 shadow-lg p-4 max-w-lg mx-auto flex flex-col items-center justify-center gap-2 mt-12;
+        a {
+            @apply text-blue-600 hover:text-blue-700 mt-2 p-1;
+        }
+
+        h1 {
+            @apply text-2xl font-bold text-blue-600 text-center;
+        }
+
+        h2 {
+            @apply text-lg font-medium text-center;
+        }
+
+        p {
+            @apply text-sm text-gray-500 text-center;
+        }
+
+        textarea {
+            @apply border rounded-md p-1 w-100 focus:ring focus:ring-blue-400 mt-2 mb-2;
+        }
+    }
+}

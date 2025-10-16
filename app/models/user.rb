@@ -12,12 +12,11 @@ class User < ApplicationRecord
   
   enum :user_type, { admin: 0, employer: 1, seeker: 2 }
 
-  after_create :create_company
+  after_create_commit :create_company
 
   private
 
   def create_company
-    self.company = Company.create(name: company_name, description: company_description)
-    self.save!
+    Company.create!(name: company_name, description: company_description, user_id: id)
   end
 end

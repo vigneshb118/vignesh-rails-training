@@ -1,32 +1,45 @@
 @import "tailwindcss";
 
 @layer base {
-    button {
-        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg;
+    body {
+        @apply min-h-screen bg-gray-50;
     }
-
-    input[type="text"],
-    input[type="email"],
+    
+    .auth-container {
+        @apply min-h-screen flex items-center justify-center;
+    }
+    
     input[type="password"],
-    input[type="number"] {
-      @apply border rounded-md p-1 w-auto focus:ring focus:ring-blue-400 mt-2 mb-2;
+    input[type="email"] {
+        @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-2;
     }
     
     input[type="submit"],
     button[type="submit"] {
-        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg;
+        @apply bg-blue-600 hover:bg-blue-700 text-white w-full font-semibold py-2 px-4 rounded-lg;
     }
 
     select {
-        @apply border rounded-md p-2 w-auto focus:ring focus:ring-blue-400 mt-2 mb-4;
+        @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-4;
+    }
+
+    a {
+        @apply text-blue-600 hover:text-blue-700 mt-2;
     }
 }
 
 @layer components {
     .card {
-        @apply bg-white border border-gray-200 shadow-lg p-4 max-w-lg mx-auto flex flex-col items-center justify-center gap-2 mt-12;
-        a {
-            @apply text-blue-600 hover:text-blue-700 mt-2 p-1;
+        &.sign-up-card {
+            @apply bg-white border border-gray-200 shadow-lg p-8 max-w-lg flex flex-col items-center justify-center;
+        }
+
+        &.login-card {
+            @apply w-full bg-white border border-gray-200 shadow-lg p-8 max-w-lg flex flex-col items-center justify-center;
+        }
+
+        input[type="text"] {
+            @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-2;
         }
 
         h1 {
@@ -42,7 +55,7 @@
         }
 
         textarea {
-            @apply border rounded-md p-1 w-100 focus:ring focus:ring-blue-400 mt-2 mb-2;
+            @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-2;
         }
     }
 }

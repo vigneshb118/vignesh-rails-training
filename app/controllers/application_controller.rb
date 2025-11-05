@@ -7,7 +7,7 @@ class ApplicationController < ActionController::Base
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
 
   def after_sign_in_path_for(resource)
-    resource.user_type == "employer" ? new_company_path : jobs_path
+    jobs_path
   end
 
   def user_not_authorized

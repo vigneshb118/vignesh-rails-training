@@ -6,7 +6,7 @@
     }
     
     .auth-container {
-        @apply min-h-screen flex items-center justify-center;
+        @apply min-h-[calc(100vh-80px)] flex items-center justify-center;
     }
     
     input[type="password"],
@@ -22,13 +22,23 @@
     select {
         @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-4;
     }
-
-    a {
-        @apply text-blue-600 hover:text-blue-700 mt-2;
-    }
 }
 
 @layer components {
+    .navbar {
+        @apply bg-white border-b border-gray-200 shadow-sm p-4;
+    }
+    .navbar .container-fluid {
+        @apply flex items-center justify-between;
+    }
+    .navbar-brand {
+        @apply text-blue-600 hover:text-blue-700 font-bold text-xl;
+    }
+    .navbar-link {
+        @apply text-black hover:text-blue-700 px-3 py-2 rounded-md hover:bg-gray-100;
+    }
+
+    
     .card {
         &.sign-up-card {
             @apply bg-white border border-gray-200 shadow-lg p-8 max-w-lg flex flex-col items-center justify-center;
@@ -57,5 +67,100 @@
         textarea {
             @apply border rounded-md p-2 w-full focus:ring focus:ring-blue-400 mt-2 mb-2;
         }
+
+        a {
+            @apply text-blue-600 hover:text-blue-700 mt-2;
+        }
+    }
+
+    .jobs-container {
+        @apply flex flex-wrap gap-4;
+    }
+
+    .job-card {
+        @apply bg-white border border-gray-200 my-2 p-2 max-w-md;
+
+        h2 {
+            @apply text-lg font-bold text-black mb-2;
+        }
+
+        h3 {
+            @apply text-sm text-gray-500 mb-2 mt-2;
+        }
+        
+        label {
+            @apply text-sm text-black border border-blue-600 bg-blue-100 rounded-full px-2 py-1;
+        }
+
+        p {
+            @apply text-sm text-black mb-2;
+        }
+        
+        a {
+            @apply text-blue-600 hover:text-blue-700 mt-2;
+        }
+    }
+    .company-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 flex flex-col items-center justify-center;
+
+        h2 {
+            @apply text-lg font-bold text-black mb-2;
+        }
+
+        p {
+            @apply text-sm text-gray-500 mb-2;
+        }
+
+        a {
+            @apply text-blue-600 hover:text-blue-700 mt-2;
+        }
+    }
+
+    .company-jobs-container {
+        @apply flex flex-col items-center justify-center gap-4;
+
+        h2 {
+            @apply text-lg font-bold text-black mb-2;
+        }
+
+        a {
+            @apply text-blue-600 hover:text-blue-700 mt-2;
+        }
+    }
+
+    .company-jobs-list {
+        @apply flex flex-col max-w-lg;
+    }
+
+    .job-accordion {
+        @apply bg-white border border-gray-200 shadow-sm my-2 p-4;
+    }
+
+    .job-accordion-button {
+        @apply flex w-full items-center justify-between text-left text-lg font-medium text-gray-900;
+    }
+
+    .job-accordion-button-text {
+        @apply flex items-center justify-between;
+    }
+
+    .job-accordion-button-text-type {
+        @apply text-sm text-gray-500 ml-2 bg-blue-100 rounded-full px-2 py-1;
+    }
+
+    .job-accordion-icon-closed {
+        @apply h-5 w-5;
+    }
+
+    .job-accordion-icon-open {
+        @apply h-5 w-5;
+    }
+
+    .job-accordion-content {
+        @apply overflow-hidden max-h-0 transition-all duration-300 text-gray-600;
+    }
+
+    .job-accordion-content-text {
+        @apply pb-4;
     }
 }

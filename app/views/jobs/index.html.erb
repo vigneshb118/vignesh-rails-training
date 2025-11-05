@@ -1,11 +1,6 @@
-<h1>Jobs</h1>
-<% if current_user&.user_type == "employer" %>
-  <%= link_to "New Job", new_job_path %>
-<% end %>
-<br>
-<%= turbo_frame_tag "jobs" do %>
-<% @jobs.each do |job| %>
+<h1 class="text-2xl font-bold text-blue-600 p-4">Jobs</h1>
+<div class="jobs-container mx-4">
+  <% @jobs.each do |job| %>
     <%= render job %>
-    <br>
-<% end %>
-<% end %>
+  <% end %>
+</div>

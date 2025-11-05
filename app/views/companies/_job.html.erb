@@ -1,0 +1,17 @@
+<%= turbo_frame_tag "job_#{job.id}" do %>
+  <div data-controller="accordion" data-accordion-open-value="false" class="job-accordion">
+    <button data-action="accordion#toggle" class="job-accordion-button">
+      <span class="job-accordion-button-text"><%= job.title %><span class="job-accordion-button-text-type"><%= job.job_type.humanize.titleize %></span></span>
+      <svg data-accordion-target="iconClosed" class="job-accordion-icon-closed" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <svg data-accordion-target="iconOpen" class="job-accordion-icon-open hidden" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+      </svg>
+    </button>
+
+    <div data-accordion-target="content" class="job-accordion-content">
+      <p class="job-accordion-content-text"><%= job.description %></p>
+    </div>
+  </div>
+<% end %>

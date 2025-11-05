@@ -46,7 +46,7 @@ class JobsController < ApplicationController
 
   def destroy
     @job.destroy
-    redirect_to jobs_path, notice: "Job deleted successfully"
+    redirect_to jobs_path
   end
 
   private

@@ -1,9 +1,19 @@
 <%= turbo_frame_tag "company" do %>
-<h1>Company</h1>
-<%= @company.name %>
-<%= @company.description %>
-<%= link_to "Edit", edit_company_path(@company), data: { turbo_frame: "_top" } %>
+<div class="company-card">
+<h2><%= @company.name %></h2>
+<p><%= @company.description %></p>
+<%= link_to "Edit Company", edit_company_path(@company), data: { turbo_frame: "_top" } %>
+</div>
 <% end %>
-<br>
-<h2>Jobs</h2>
-<%= render @company.jobs %>
+<br />
+<div class="company-jobs-container">
+<h2>Jobs posted by you</h2>
+<div class="company-jobs-list">
+  <% @company.jobs.each do |job| %>
+    <%= render "companies/job", job: job %>
+    <% end %>
+  </div>
+  <% if current_user&.user_type == "employer" %>
+    <%= link_to "Post a Job", new_job_path %>
+  <% end %>
+</div>

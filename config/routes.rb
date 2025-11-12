@@ -18,6 +18,7 @@ Rails.application.routes.draw do
 
   resources :jobs do
     patch :change_status, on: :member
+    post :apply, on: :member
   end
 
   resources :companies

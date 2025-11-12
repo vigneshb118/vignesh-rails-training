@@ -35,5 +35,10 @@
       <%= link_to "Edit Job", edit_job_path(@job), class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block", data: { turbo_frame: "_top" } %>
     </div>
   <% end %>
+  <% if policy(@job).apply? %>
+    <div class="mt-6">
+      <%= link_to "Apply for this job", apply_job_path(@job), class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block", data: { turbo_method: :post } %>
+    </div>
+  <% end %>
 </div>
 <% end %>

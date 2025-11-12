@@ -21,6 +21,10 @@ class JobPolicy < ApplicationPolicy
     employer_owns_record?
   end
 
+  def apply?
+    user&.seeker?
+  end
+
   class Scope < Scope
     def resolve
       scope.all

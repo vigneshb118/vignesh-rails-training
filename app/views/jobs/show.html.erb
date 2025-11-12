@@ -1,3 +1,39 @@
 <%= turbo_frame_tag "jobs" do %>
-<%= render @job %>
+<div class="job-show-card">
+  <h2><%= @job.title %></h2>
+  
+  <div class="job-detail-section">
+    <div class="flex flex-wrap items-center gap-4 mb-4">
+      <span class="job-badge"><%= @job.job_type.humanize.titleize %></span>
+      <span class="job-status-badge <%= @job.status %>">
+        <%= @job.status.humanize.titleize %>
+      </span>
+    </div>
+  </div>
+
+  <div class="job-detail-section">
+    <div class="job-detail-label">Company</div>
+    <div class="job-detail-value">
+      <%= link_to @job.company.name, company_path(@job.company), class: "job-company-link", data: { turbo_frame: "_top" } %>
+    </div>
+  </div>
+
+  <div class="job-detail-section">
+    <div class="job-detail-label">Salary</div>
+    <div class="job-salary"><%= number_to_currency(@job.salary, precision: 0) %></div>
+  </div>
+
+  <div class="job-detail-section">
+    <div class="job-detail-label">Description</div>
+    <div class="job-description">
+      <%= simple_format(@job.description) %>
+    </div>
+  </div>
+
+  <% if policy(@job).edit? %>
+    <div class="mt-6">
+      <%= link_to "Edit Job", edit_job_path(@job), class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block", data: { turbo_frame: "_top" } %>
+    </div>
+  <% end %>
+</div>
 <% end %>

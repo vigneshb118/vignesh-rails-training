@@ -1,7 +1,9 @@
+<%= turbo_frame_tag "company" do %>
 <%= form_for @company do |f| %>
   <%= f.label :name %>
   <%= f.text_field :name %>
   <%= f.label :description %>
   <%= f.text_area :description %>
   <%= f.submit "#{controller.action_name.capitalize} company", class: "btn btn-primary", data: { turbo_frame: "_top" } %>
+  <% end %>
 <% end %>

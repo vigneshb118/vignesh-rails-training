@@ -4,7 +4,7 @@ class JobsController < ApplicationController
   before_action :authorize_job, only: [ :edit, :update, :destroy ]
 
   def index
-    @jobs = Job.open
+    @jobs = Job.open.order(:id)
   end
 
   def show

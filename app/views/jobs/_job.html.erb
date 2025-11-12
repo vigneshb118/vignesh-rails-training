@@ -1,16 +1,8 @@
 <div class="job-card">
 <%= turbo_frame_tag "job_#{job.id}" do %>
-  <h2><%= job.title %></h2> <label><%= job.job_type.humanize.titleize %></label>
+  <a href="<%= job_path(job) %>" data-turbo-frame="_top"><h2><%= job.title %></h2></a> 
+  <label><%= job.job_type.humanize.titleize %></label>
   <h3><%= job.company.name %></h3>
-  <p><%= job.description %></p>
-  <% if action_name == "index" %>
-  <a href="<%= job_path(job) %>" data-turbo-frame="_top">Show</a>
-  <% end %>
-  <% if policy(job).edit? %>
-    <%= link_to "Edit", edit_job_path(job), data: { turbo_frame: "_top" } %>
-  <% end %>
-  <% if policy(job).archive? %>
-    <%= link_to job.archived? ? 'Reopen' : 'Archive', change_status_job_path(job, job: { status: job.archived? ? 'open' : 'archived' }), data: { turbo_method: :patch } %>
-  <% end %>
+  <p><%= simple_format(truncate(job.description, length: 400, separator: ' ')) %></p>
 <% end %>
 </div>

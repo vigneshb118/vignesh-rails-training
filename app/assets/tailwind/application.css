@@ -78,7 +78,7 @@
     }
 
     .job-card {
-        @apply bg-white border border-gray-200 my-2 p-2 max-w-md;
+        @apply bg-white border border-gray-200 my-2 p-4 max-w-md;
 
         h2 {
             @apply text-lg font-bold text-black mb-2;
@@ -93,7 +93,7 @@
         }
 
         p {
-            @apply text-sm text-black mb-2;
+            @apply text-sm text-black mb-2 text-justify;
         }
         
         a {
@@ -101,10 +101,122 @@
         }
     }
     .company-card {
-        @apply bg-white border border-gray-200 shadow-lg p-8 flex flex-col items-center justify-center;
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-3xl mx-auto rounded-lg;
 
         h2 {
-            @apply text-lg font-bold text-black mb-2;
+            @apply text-2xl font-bold text-blue-600 mb-4 text-center;
+        }
+
+        p {
+            @apply text-gray-700 leading-relaxed mb-6 text-center;
+        }
+
+        a {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block text-center;
+        }
+    }
+
+    .company-jobs-container {
+        @apply max-w-4xl mx-auto mt-8 px-4;
+
+        h2 {
+            @apply text-2xl font-bold text-blue-600 mb-6 text-center;
+        }
+
+        a {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block mt-4;
+        }
+    }
+
+    .company-jobs-list {
+        @apply flex flex-col gap-4;
+    }
+
+    .job-accordion {
+        @apply bg-white border border-gray-200 shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-200;
+    }
+
+    .job-accordion-button {
+        @apply flex w-full items-center justify-between text-left text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors duration-200 cursor-pointer;
+    }
+
+    .job-accordion-button-text {
+        @apply flex items-center justify-between flex-1;
+    }
+
+    .job-accordion-button-text-type {
+        @apply text-sm text-black ml-2 bg-blue-100 border border-blue-300 rounded-full px-3 py-1 font-medium;
+    }
+
+    .job-accordion-icon-closed {
+        @apply h-5 w-5 text-gray-500;
+    }
+
+    .job-accordion-icon-open {
+        @apply h-5 w-5 text-gray-500;
+    }
+
+    .job-accordion-content {
+        @apply overflow-hidden max-h-0 transition-all duration-300 text-gray-600;
+    }
+
+    .job-accordion-content-text {
+        @apply pb-4 pt-2 leading-relaxed;
+    }
+
+    .job-accordion-content a {
+        @apply font-medium mr-4 transition-colors duration-200;
+    }
+
+    .job-show-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-3xl mx-auto rounded-lg;
+        
+        h2 {
+            @apply text-2xl font-bold text-blue-600 mb-4 text-center;
+        }
+
+        h3 {
+            @apply text-lg font-semibold text-gray-700 mb-2;
+        }
+
+        .job-detail-section {
+            @apply mb-6;
+        }
+
+        .job-detail-label {
+            @apply text-sm font-medium text-gray-500 uppercase tracking-wide mb-1;
+        }
+
+        .job-detail-value {
+            @apply text-base text-gray-900 mb-4;
+        }
+
+        .job-badge {
+            @apply inline-block text-sm text-black border border-blue-600 bg-blue-100 rounded-full px-3 py-1 mr-2;
+        }
+
+        .job-status-badge {
+            @apply inline-block text-sm font-medium rounded-full px-3 py-1;
+            
+            &.open {
+                @apply bg-green-100 text-green-800 border border-green-300;
+            }
+            
+            &.archived {
+                @apply bg-gray-100 text-gray-800 border border-gray-300;
+            }
+        }
+
+        .job-description {
+            @apply text-gray-700 leading-relaxed mb-6;
+        }
+
+        .job-company-link {
+            @apply text-blue-600 hover:text-blue-700 font-medium;
+        }
+
+        .job-salary {
+            @apply text-xl font-bold text-green-600;
         }
 
         p {
@@ -116,51 +228,112 @@
         }
     }
 
-    .company-jobs-container {
-        @apply flex flex-col items-center justify-center gap-4;
+    .company-edit-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-2xl mx-auto rounded-lg;
+        
+        h1 {
+            @apply text-2xl font-bold text-blue-600 mb-6 text-center;
+        }
 
+        form {
+            @apply space-y-6;
+        }
+
+        label {
+            @apply block text-sm font-medium text-gray-700 mb-2;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"] {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all;
+        }
+
+        textarea {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all min-h-[120px] resize-y;
+        }
+
+        input[type="submit"],
+        button[type="submit"] {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 cursor-pointer;
+        }
+    }
+
+    .job-edit-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-2xl mx-auto rounded-lg;
+        
+        h1 {
+            @apply text-2xl font-bold text-blue-600 mb-6 text-center;
+        }
+
+        form {
+            @apply space-y-6;
+        }
+
+        label {
+            @apply block text-sm font-medium text-gray-700 mb-2;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"] {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all;
+        }
+
+        textarea {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all min-h-[120px] resize-y;
+        }
+
+        select {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all bg-white;
+        }
+
+        input[type="submit"],
+        button[type="submit"] {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 cursor-pointer;
+        }
+    }
+
+    .profile-edit-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-2xl mx-auto rounded-lg;
+        
         h2 {
-            @apply text-lg font-bold text-black mb-2;
+            @apply text-2xl font-bold text-blue-600 mb-6 text-center;
+        }
+
+        form {
+            @apply space-y-6;
+        }
+
+        .field {
+            @apply space-y-2;
+        }
+
+        label {
+            @apply block text-sm font-medium text-gray-700;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            @apply w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all;
+        }
+
+        i,
+        em {
+            @apply text-xs text-gray-500 italic;
+        }
+
+        .actions {
+            @apply pt-4;
+        }
+
+        input[type="submit"],
+        button[type="submit"] {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 cursor-pointer;
         }
 
         a {
-            @apply text-blue-600 hover:text-blue-700 mt-2;
+            @apply text-blue-600 hover:text-blue-700 mt-4 inline-block;
         }
-    }
-
-    .company-jobs-list {
-        @apply flex flex-col max-w-lg;
-    }
-
-    .job-accordion {
-        @apply bg-white border border-gray-200 shadow-sm my-2 p-4;
-    }
-
-    .job-accordion-button {
-        @apply flex w-full items-center justify-between text-left text-lg font-medium text-gray-900;
-    }
-
-    .job-accordion-button-text {
-        @apply flex items-center justify-between;
-    }
-
-    .job-accordion-button-text-type {
-        @apply text-sm text-gray-500 ml-2 bg-blue-100 rounded-full px-2 py-1;
-    }
-
-    .job-accordion-icon-closed {
-        @apply h-5 w-5;
-    }
-
-    .job-accordion-icon-open {
-        @apply h-5 w-5;
-    }
-
-    .job-accordion-content {
-        @apply overflow-hidden max-h-0 transition-all duration-300 text-gray-600;
-    }
-
-    .job-accordion-content-text {
-        @apply pb-4;
     }
 }

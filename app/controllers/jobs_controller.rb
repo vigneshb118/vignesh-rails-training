@@ -47,7 +47,7 @@ class JobsController < ApplicationController
   def destroy
     @job.destroy
     redirect_to jobs_path
-  enda
+  end
 
   def apply
     @job_application = JobApplication.new(job_id: @job.id, user_id: current_user.id)
@@ -72,4 +72,3 @@ class JobsController < ApplicationController
     authorize @job
   end
 end
-a

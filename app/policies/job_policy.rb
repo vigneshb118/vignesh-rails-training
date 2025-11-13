@@ -22,7 +22,7 @@ class JobPolicy < ApplicationPolicy
   end
 
   def apply?
-    user&.seeker?
+    user&.seeker? && record.open?
   end
 
   class Scope < Scope

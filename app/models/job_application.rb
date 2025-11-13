@@ -10,5 +10,5 @@ class JobApplication < ApplicationRecord
     hired: 4
   }
 
-  validates_uniqueness_of :user_id, scope: :job_id
+  validates_uniqueness_of :user_id, scope: :job_id 
 end

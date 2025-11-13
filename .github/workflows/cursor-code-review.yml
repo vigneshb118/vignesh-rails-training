@@ -208,9 +208,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "✅ No issues found. Converting draft PR to ready for review..."
-          # Use REST API to mark PR as ready (more reliable than GraphQL)
-          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+          # Use REST API to mark PR as ready - use input with JSON to ensure boolean is passed correctly
+          echo '{"draft":false}' | gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
             --method PATCH \
-            --field draft=false
-          echo "PR is now ready for dev review."
+            --input -
+          # Verify the change
+          DRAFT_STATUS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.draft')
+          if [ "$DRAFT_STATUS" = "false" ]; then
+            echo "✅ PR successfully converted from draft to ready for review."
+          else
+            echo "⚠️ Warning: PR draft status is still $DRAFT_STATUS. The API call may not have worked."
+          fi
 

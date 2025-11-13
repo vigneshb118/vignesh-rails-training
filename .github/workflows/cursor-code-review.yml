@@ -40,20 +40,39 @@ jobs:
           # Get all review comments from this bot
           REVIEW_COMMENTS_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate 2>/dev/null || echo "[]")
           
-          # Count unresolved comments from github-actions[bot] or Bot users
-          # Comments are unresolved if state is PENDING, null, or if they're part of an unresolved thread
-          UNRESOLVED_COUNT=$(echo "$REVIEW_COMMENTS_JSON" | jq -r '.[] | select((.user.login == "github-actions[bot]" or .user.type == "Bot") and (.state == "PENDING" or .state == null or .state == "")) | .id' | wc -l | tr -d ' ')
+          # Get all reviews to check the review state
+          PR_REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot")' 2>/dev/null || echo "[]")
           
-          echo "Found $UNRESOLVED_COUNT unresolved review comments from bot"
+          # Count bot comments
+          BOT_COMMENT_COUNT=$(echo "$REVIEW_COMMENTS_JSON" | jq -r '[.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot")] | length')
           
-          # Check if there are any unresolved comments from this bot
-          if [ "$UNRESOLVED_COUNT" -gt 0 ]; then
-            echo "⚠️ There are $UNRESOLVED_COUNT unresolved review comments. Skipping workflow."
-            echo "Please address the existing comments before running another review."
-            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
-          else
-            echo "✅ No unresolved comments found. Proceeding with review."
+          echo "Found $BOT_COMMENT_COUNT bot review comments"
+          
+          # Check if PR has "CHANGES_REQUESTED" state from the bot
+          CHANGES_REQUESTED=$(echo "$PR_REVIEWS" | jq -r '.[] | select(.state == "CHANGES_REQUESTED") | .id' | head -1)
+          
+          # Check the event type - if it's "synchronize" (new commit), allow workflow to run
+          # because user is actively working on addressing comments
+          EVENT_TYPE="${{ github.event.action }}"
+          
+          # If there are no bot comments, there's nothing to resolve
+          if [ "$BOT_COMMENT_COUNT" -eq 0 ]; then
+            echo "✅ No bot comments found. Proceeding with review."
             echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If this is a new commit (synchronize), allow workflow to run even if comments exist
+          # because the user is actively working on addressing them
+          elif [ "${{ github.event.action }}" = "synchronize" ]; then
+            echo "✅ New commit detected. Allowing review to run (user is addressing comments)."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If there are comments but PR doesn't have "CHANGES_REQUESTED" state, assume comments are resolved
+          elif [ -z "$CHANGES_REQUESTED" ]; then
+            echo "✅ Bot comments exist but PR doesn't have 'CHANGES_REQUESTED' state. Assuming comments are resolved."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If PR has "CHANGES_REQUESTED" and this is the initial "opened" event, skip to avoid duplicate
+          else
+            echo "⚠️ PR has 'CHANGES_REQUESTED' state with bot comments on initial open. Skipping to avoid duplicate reviews."
+            echo "Push a new commit to trigger the review again after addressing comments."
+            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
           fi
 
       - name: Perform automated code review

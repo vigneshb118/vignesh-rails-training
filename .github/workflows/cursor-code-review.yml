@@ -122,6 +122,9 @@ jobs:
           - After submitting a "no issues" comment, set environment variable: echo "NO_ISSUES_FOUND=true" >> $GITHUB_ENV
           - If issues are found, set: echo "NO_ISSUES_FOUND=false" >> $GITHUB_ENV
           - Always set NO_ISSUES_FOUND at the end
+          - Track high severity comments: If any comment contains 🚨 (Critical) or 🔒 (Security) emoji, set: echo "HIGH_SEVERITY_COMMENTS=true" >> $GITHUB_ENV
+          - If no high severity comments were posted, set: echo "HIGH_SEVERITY_COMMENTS=false" >> $GITHUB_ENV
+          - Always set HIGH_SEVERITY_COMMENTS at the end
 
           Blocking behavior:
           - If BLOCKING_REVIEW is true and any 🚨 or 🔒 issues were posted: echo "CRITICAL_ISSUES_FOUND=true" >> $GITHUB_ENV
@@ -142,6 +145,38 @@ jobs:
             exit 1
           else
             echo "✅ No blocking issues found."
+          fi
+
+      - name: Request changes for high severity issues
+        if: env.SKIP_REVIEW == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for high severity comments..."
+          
+          # Get all review comments posted by the bot in this PR
+          REVIEW_COMMENTS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot") | .body' 2>/dev/null || echo "")
+          
+          # Check if any comment contains high severity emojis (🚨 or 🔒)
+          HIGH_SEVERITY_FOUND=false
+          if echo "$REVIEW_COMMENTS" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+            echo "Found high severity emoji in review comments"
+          fi
+          
+          # Also check the most recent review body for high severity indicators
+          LATEST_REVIEW=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[-1].body // empty' 2>/dev/null || echo "")
+          if [ -n "$LATEST_REVIEW" ] && echo "$LATEST_REVIEW" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+            echo "Found high severity emoji in review body"
+          fi
+          
+          if [ "$HIGH_SEVERITY_FOUND" = "true" ]; then
+            echo "🚨 High severity issues found. Requesting changes on PR..."
+            gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --request-changes --body "High severity issues (🚨 Critical or 🔒 Security) were identified during the automated code review. Please address these issues before proceeding."
+            echo "PR status changed to 'Changes requested'."
+          else
+            echo "✅ No high severity issues found. PR review status unchanged."
           fi
 
       - name: Convert draft PR to ready for review

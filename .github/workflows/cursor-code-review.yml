@@ -2,7 +2,7 @@ name: Cursor Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [labeled, synchronize]
 
 permissions:
   pull-requests: write
@@ -12,8 +12,10 @@ permissions:
 jobs:
   code-review:
     runs-on: ubuntu-latest
-    # Only run on draft pull requests
-    if: github.event.pull_request.draft == true
+    # Only run if PR has "AI-Review" label
+    if: |
+      (github.event.action == 'labeled' && github.event.label.name == 'AI-Review') ||
+      (github.event.action == 'synchronize')
     permissions:
       pull-requests: write
       contents: read
@@ -35,7 +37,22 @@ jobs:
           git config user.name "Cursor Agent"
           git config user.email "cursoragent@cursor.com"
 
+      - name: Verify AI-Review label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Verifying PR has 'AI-Review' label..."
+          PR_LABELS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels --jq '.[].name' 2>/dev/null || echo "")
+          if echo "$PR_LABELS" | grep -q "AI-Review"; then
+            echo "✅ PR has 'AI-Review' label. Proceeding with review."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          else
+            echo "⚠️ PR does not have 'AI-Review' label. Skipping review."
+            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
+          fi
+
       - name: Check for unresolved comments
+        if: env.SKIP_REVIEW == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -72,9 +89,9 @@ jobs:
           elif [ -z "$CHANGES_REQUESTED" ]; then
             echo "✅ Bot comments exist but PR doesn't have 'CHANGES_REQUESTED' state. Assuming comments are resolved."
             echo "SKIP_REVIEW=false" >> $GITHUB_ENV
-          # If PR has "CHANGES_REQUESTED" and this is the initial "opened" event, skip to avoid duplicate
+          # If PR has "CHANGES_REQUESTED" and this is the initial "labeled" event, skip to avoid duplicate
           else
-            echo "⚠️ PR has 'CHANGES_REQUESTED' state with bot comments on initial open. Skipping to avoid duplicate reviews."
+            echo "⚠️ PR has 'CHANGES_REQUESTED' state with bot comments on initial label. Skipping to avoid duplicate reviews."
             echo "Push a new commit to trigger the review again after addressing comments."
             echo "SKIP_REVIEW=true" >> $GITHUB_ENV
           fi
@@ -202,21 +219,57 @@ jobs:
             echo "✅ No high severity issues found. PR review status unchanged."
           fi
 
-      - name: Convert draft PR to ready for review
-        if: env.SKIP_REVIEW == 'false' && env.NO_ISSUES_FOUND == 'true'
+      - name: Manage labels based on review results
+        if: env.SKIP_REVIEW == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "✅ No issues found. Converting draft PR to ready for review..."
-          # Use REST API to mark PR as ready - use input with JSON to ensure boolean is passed correctly
-          echo '{"draft":false}' | gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
-            --method PATCH \
-            --input -
-          # Verify the change
-          DRAFT_STATUS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} --jq '.draft')
-          if [ "$DRAFT_STATUS" = "false" ]; then
-            echo "✅ PR successfully converted from draft to ready for review."
+          echo "Managing labels based on review results..."
+          
+          # Check for high severity comments
+          REVIEW_COMMENTS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot") | .body' 2>/dev/null || echo "")
+          HIGH_SEVERITY_FOUND=false
+          if echo "$REVIEW_COMMENTS" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+          fi
+          
+          LATEST_REVIEW=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[-1].body // empty' 2>/dev/null || echo "")
+          if [ -n "$LATEST_REVIEW" ] && echo "$LATEST_REVIEW" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+          fi
+          
+          # Check if no issues were found
+          if [ "${NO_ISSUES_FOUND:-false}" = "true" ] && [ "$HIGH_SEVERITY_FOUND" = "false" ]; then
+            echo "✅ No issues found. Managing labels..."
+            
+            # Remove AI-Review label
+            echo "Removing 'AI-Review' label..."
+            gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/AI-Review \
+              --method DELETE 2>/dev/null || echo "Label 'AI-Review' not found or already removed"
+            
+            # Ensure Ready-for-code-review label exists (create if it doesn't)
+            echo "Ensuring 'Ready-for-code-review' label exists..."
+            gh label list --repo ${{ github.repository }} --json name --jq '.[].name' | grep -q "Ready-for-code-review" || \
+            gh label create "Ready-for-code-review" --repo ${{ github.repository }} --description "PR is ready for human code review" --color "0E8A16" 2>/dev/null || echo "Label may already exist"
+            
+            # Add Ready-for-code-review label
+            echo "Adding 'Ready-for-code-review' label..."
+            gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+              --method POST \
+              --raw-field labels='["Ready-for-code-review"]' 2>/dev/null || echo "Failed to add label, trying alternative method..."
+            
+            # Alternative method if the above fails
+            if ! gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels --jq '.[].name' | grep -q "Ready-for-code-review"; then
+              echo '{"labels":["Ready-for-code-review"]}' | gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+                --method POST \
+                --input - 2>/dev/null || echo "Label addition may have failed"
+            fi
+            
+            echo "✅ Labels updated: Removed 'AI-Review', Added 'Ready-for-code-review'"
+          elif [ "$HIGH_SEVERITY_FOUND" = "true" ]; then
+            echo "🚨 High severity issues found. Keeping 'AI-Review' label."
+            echo "PR still needs attention before it can be marked as ready for code review."
           else
-            echo "⚠️ Warning: PR draft status is still $DRAFT_STATUS. The API call may not have worked."
+            echo "⚠️ Issues found but no high severity. Keeping 'AI-Review' label."
           fi
 

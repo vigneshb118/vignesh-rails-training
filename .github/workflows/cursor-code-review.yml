@@ -31,7 +31,33 @@ jobs:
           git config user.name "Cursor Agent"
           git config user.email "cursoragent@cursor.com"
 
+      - name: Check for unresolved comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for unresolved review comments..."
+          
+          # Get all review comments from this bot
+          REVIEW_COMMENTS_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate 2>/dev/null || echo "[]")
+          
+          # Count unresolved comments from github-actions[bot] or Bot users
+          # Comments are unresolved if state is PENDING, null, or if they're part of an unresolved thread
+          UNRESOLVED_COUNT=$(echo "$REVIEW_COMMENTS_JSON" | jq -r '.[] | select((.user.login == "github-actions[bot]" or .user.type == "Bot") and (.state == "PENDING" or .state == null or .state == "")) | .id' | wc -l | tr -d ' ')
+          
+          echo "Found $UNRESOLVED_COUNT unresolved review comments from bot"
+          
+          # Check if there are any unresolved comments from this bot
+          if [ "$UNRESOLVED_COUNT" -gt 0 ]; then
+            echo "⚠️ There are $UNRESOLVED_COUNT unresolved review comments. Skipping workflow."
+            echo "Please address the existing comments before running another review."
+            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
+          else
+            echo "✅ No unresolved comments found. Proceeding with review."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          fi
+
       - name: Perform automated code review
+        if: env.SKIP_REVIEW == 'false'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           MODEL: Auto
@@ -55,8 +81,10 @@ jobs:
 
           Procedure:
           - Get existing comments: gh pr view --json comments
+          - Get all review comments with their exact positions: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | {path: .path, line: .line, position: .original_line, body: .body, state: .state}'
           - Get diff: gh pr diff
           - Get changed files with patches to compute inline positions: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --paginate --jq '.[] | {filename,patch}'
+          - CRITICAL: Before posting any comment, check if there is already an existing comment on the EXACT same file path and line/position. If a comment exists on the same line (matching path and line number), DO NOT post a duplicate comment. Skip that issue entirely.
           - Compute exact inline anchors for each issue (file path + diff position). Comments MUST be placed inline on the changed line in the diff, not as top-level comments.
           - Detect prior top-level "no issues" style comments authored by this bot (match bodies like: "✅ no issues", "No issues found", "LGTM", "Cursor Review done").
           - If CURRENT run finds issues and any prior "no issues" comments exist:
@@ -74,7 +102,7 @@ jobs:
             - Obvious logic errors with incorrect behavior
             - Clear performance anti-patterns with measurable impact
             - Definitive security vulnerabilities
-          - Avoid duplicates: skip if similar feedback already exists on or near the same lines.
+          - STRICT DUPLICATE PREVENTION: For each issue you want to comment on, first check the existing comments list. If ANY comment exists on the same file path AND same line number (or within 2 lines), DO NOT post a new comment. This prevents duplicate comments on the same lines.
 
           Commenting rules:
           - Max 10 inline comments total; prioritize the most critical issues
@@ -104,7 +132,7 @@ jobs:
           cursor-agent --force --model "$MODEL" --output-format=text --print "$PROMPT"
 
       - name: Check blocking review results
-        if: env.BLOCKING_REVIEW == 'true'
+        if: env.SKIP_REVIEW == 'false' && env.BLOCKING_REVIEW == 'true'
         run: |
           echo "Checking for critical issues..."
           echo "CRITICAL_ISSUES_FOUND: ${CRITICAL_ISSUES_FOUND:-unset}"
@@ -117,7 +145,7 @@ jobs:
           fi
 
       - name: Convert draft PR to ready for review
-        if: env.NO_ISSUES_FOUND == 'true'
+        if: env.SKIP_REVIEW == 'false' && env.NO_ISSUES_FOUND == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

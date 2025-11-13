@@ -51,7 +51,7 @@ class JobsController < ApplicationController
 
   def apply
     @job_application = JobApplication.new(job_id: @job.id, user_id: current_user.id)
-    if @job_application.save!
+    if @job_application.save
       redirect_to job_path(@job)
     else
       render :show

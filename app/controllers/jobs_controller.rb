@@ -1,7 +1,7 @@
 class JobsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
   before_action :set_job, only: [ :show, :edit, :update, :destroy, :change_status, :apply ]
-  before_action :authorize_job, only: [ :edit, :update, :destroy ]
+  before_action :authorize_job, only: [ :edit, :update, :destroy, :apply ]
 
   def index
     @jobs = Job.open.order(:id)

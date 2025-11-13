@@ -9,4 +9,6 @@ class JobApplication < ApplicationRecord
     rejected: 3,
     hired: 4
   }
+
+  validates_uniqueness_of :user_id, scope: :job_id
 end

@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on draft pull requests
     if: github.event.pull_request.draft == true
+    permissions:
+      pull-requests: write
+      contents: read
+      issues: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -204,6 +208,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "✅ No issues found. Converting draft PR to ready for review..."
-          gh pr ready ${{ github.event.pull_request.number }} --repo ${{ github.repository }}
+          # Use REST API to mark PR as ready (more reliable than GraphQL)
+          gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+            --method PATCH \
+            --field draft=false
           echo "PR is now ready for dev review."
 

@@ -31,6 +31,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_12_051818) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["job_id"], name: "index_job_applications_on_job_id"
+    t.index ["user_id", "job_id"], name: "index_job_applications_on_user_id_and_job_id", unique: true
     t.index ["user_id"], name: "index_job_applications_on_user_id"
   end
 

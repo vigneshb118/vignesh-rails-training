@@ -196,7 +196,7 @@ jobs:
           
           if [ "$HIGH_SEVERITY_FOUND" = "true" ]; then
             echo "🚨 High severity issues found. Requesting changes on PR..."
-            gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --request-changes --body "High severity issues (🚨 Critical or 🔒 Security) were identified during the automated code review. Please address these issues before proceeding."
+            gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --request-changes
             echo "PR status changed to 'Changes requested'."
           else
             echo "✅ No high severity issues found. PR review status unchanged."

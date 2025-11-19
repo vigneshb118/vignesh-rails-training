@@ -1,3 +1,7 @@
 <%= turbo_stream.update "job_application_button_#{@job.id}" do %>
   <%= link_to "Cancel Application", cancel_application_job_path(@job), class: "action-buttons", data: { turbo_method: :delete } %>
 <% end %>
+
+<%= turbo_stream.append "notifications" do %>
+  <%= render "shared/notification", message: "Successfully applied for the job", type: "info" %>
+<% end %>

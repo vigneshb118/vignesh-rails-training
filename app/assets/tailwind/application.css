@@ -340,4 +340,77 @@
     .job-show-card .action-buttons {
         @apply bg-blue-600 hover:text-gray-300 text-white font-semibold py-2 px-6 rounded-lg duration-200 inline-block text-center cursor-pointer;
     }
+
+    .notifications-container {
+        @apply fixed bottom-4 left-4 z-50 flex flex-col gap-2;
+        max-width: 400px;
+    }
+
+    .notification {
+        @apply bg-white border border-gray-200 shadow-lg rounded-lg p-4 transform transition-all duration-300 ease-in-out;
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    .notification.notification-success {
+        @apply border-green-500 bg-green-50;
+    }
+
+    .notification.notification-error {
+        @apply border-red-500 bg-red-50;
+    }
+
+    .notification.notification-info {
+        @apply border-blue-500 bg-blue-50;
+    }
+
+    .notification.notification-warning {
+        @apply border-yellow-500 bg-yellow-50;
+    }
+
+    .notification.notification-hiding {
+        animation: slideOutLeft 0.3s ease-in forwards;
+    }
+
+    .notification-content {
+        @apply flex items-center justify-between gap-3;
+    }
+
+    .notification-message {
+        @apply text-sm font-medium text-gray-900 flex-1;
+    }
+
+    .notification-close {
+        @apply flex-shrink-0 p-1 rounded-md hover:bg-gray-200 transition-colors duration-200 cursor-pointer;
+        @apply focus:outline-none focus:ring-2 focus:ring-gray-400;
+    }
+
+    .notification-close-icon {
+        @apply w-4 h-4 text-gray-600;
+    }
+
+    .notification:hover .notification-close-icon {
+        @apply text-gray-900;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutLeft {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+    }
 }

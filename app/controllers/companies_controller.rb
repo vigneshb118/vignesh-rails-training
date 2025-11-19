@@ -15,10 +15,11 @@ class CompaniesController < ApplicationController
   def create
     @company = Company.new(company_params)
     @company.user = current_user
-    if @company.save!
-      redirect_to @company
+    if @company.save
+      redirect_to @company, notice: "Company created successfully"
     else
-      render :new
+      flash.now[:alert] = "Failed to create company: #{@company.errors.full_messages.join(', ')}"
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -26,10 +27,11 @@ class CompaniesController < ApplicationController
   end
 
   def update
-    if @company.update!(company_params)
-      redirect_to @company
+    if @company.update(company_params)
+      redirect_to @company, notice: "Company updated successfully"
     else
-      render :edit
+      flash.now[:alert] = "Failed to update company: #{@company.errors.full_messages.join(', ')}"
+      render :edit, status: :unprocessable_entity
     end
   end
 
@@ -49,7 +51,7 @@ class CompaniesController < ApplicationController
 
   def company_already_exists
     if current_user.company.present?
-      redirect_to company_path(current_user.company), alert: "You already have a company."
+      redirect_to company_path(current_user.company), alert: "You already have a company"
     end
   end
 end

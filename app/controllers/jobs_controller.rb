@@ -19,10 +19,11 @@ class JobsController < ApplicationController
     authorize Job
     @job = Job.new(job_params)
     @job.company = current_user.company
-    if @job.save!
-      redirect_to jobs_path
+    if @job.save
+      redirect_to jobs_path, notice: "Job created successfully"
     else
-      render :new
+      flash.now[:alert] = "Failed to create job: #{@job.errors.full_messages.join(', ')}"
+      render :new, status: :unprocessable_entity
     end
   end
 
@@ -31,39 +32,56 @@ class JobsController < ApplicationController
 
   def update
     if @job.update(job_params)
-      redirect_to jobs_path
+      redirect_to jobs_path, notice: "Job updated successfully"
     else
-      render :edit
+      flash.now[:alert] = "Failed to update job: #{@job.errors.full_messages.join(', ')}"
+      render :edit, status: :unprocessable_entity
     end
   end
 
   def change_status
-    @job.update(job_params)
-    respond_to do |format|
-      format.turbo_stream
+    if @job.update(job_params)
+      respond_to do |format|
+        format.turbo_stream
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { render :change_status_error, status: :unprocessable_entity }
+      end
     end
   end
 
   def destroy
-    @job.destroy
-    redirect_to jobs_path
+    if @job.destroy
+      redirect_to jobs_path, notice: "Job deleted successfully"
+    else
+      redirect_to jobs_path, alert: "Failed to delete job"
+    end
   end
 
   def apply
     @job_application = JobApplication.new(job_id: @job.id, user_id: current_user.id)
-    @job_application.save
-  
-    respond_to do |format|
-      format.turbo_stream
+    if @job_application.save
+      respond_to do |format|
+        format.turbo_stream
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { render :apply_error, status: :unprocessable_entity }
+      end
     end
   end
   
   def cancel_application
     @job_application = JobApplication.find_by(job_id: @job.id, user_id: current_user.id)
-    @job_application.destroy
-  
-    respond_to do |format|
-      format.turbo_stream
+    if @job_application&.destroy
+      respond_to do |format|
+        format.turbo_stream
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { render :cancel_application_error, status: :unprocessable_entity }
+      end
     end
   end  
 

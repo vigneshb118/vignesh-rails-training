@@ -2,3 +2,6 @@
   <%= link_to "Apply for this job", apply_job_path(@job), class: "action-buttons", data: { turbo_method: :post } %>
 <% end %>
 
+<%= turbo_stream.append "notifications" do %>
+  <%= render "shared/notification", message: "Successfully cancelled the application", type: "error" %>
+<% end %>

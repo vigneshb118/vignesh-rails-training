@@ -336,4 +336,8 @@
             @apply text-blue-600 hover:text-blue-700 mt-4 inline-block;
         }
     }
+
+    .job-show-card .action-buttons {
+        @apply bg-blue-600 hover:text-gray-300 text-white font-semibold py-2 px-6 rounded-lg duration-200 inline-block text-center cursor-pointer;
+    }
 }

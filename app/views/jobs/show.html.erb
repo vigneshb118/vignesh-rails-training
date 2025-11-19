@@ -1,4 +1,4 @@
-<%= turbo_frame_tag "jobs" do %>
+<%= turbo_frame_tag "job_#{@job.id}" do %>
 <div class="job-show-card">
   <h2><%= @job.title %></h2>
   
@@ -32,12 +32,16 @@
 
   <% if policy(@job).edit? %>
     <div class="mt-6">
-      <%= link_to "Edit Job", edit_job_path(@job), class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block", data: { turbo_frame: "_top" } %>
+      <%= link_to "Edit Job", edit_job_path(@job), class: "action-buttons", data: { turbo_frame: "_top" } %>
     </div>
   <% end %>
   <% if policy(@job).apply? %>
-    <div class="mt-6">
-      <%= link_to "Apply for this job", apply_job_path(@job), class: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block", data: { turbo_method: :post } %>
+    <div class="mt-6" id="job_application_button_<%= @job.id %>">
+      <% if @job.job_applications.where(user_id: current_user.id).exists? %>
+        <%= link_to "Cancel Application", cancel_application_job_path(@job), class: "action-buttons", data: { turbo_method: :delete } %>
+      <% else %>
+        <%= link_to "Apply for this job", apply_job_path(@job), class: "action-buttons", data: { turbo_method: :post } %>
+      <% end %>
     </div>
   <% end %>
 </div>

@@ -25,6 +25,10 @@ class JobPolicy < ApplicationPolicy
     user&.seeker? && record.open?
   end
 
+  def cancel_application?
+    user&.seeker? && record.open? && record.job_applications.where(user_id: user.id).first.applied?
+  end
+
   class Scope < Scope
     def resolve
       scope.all

@@ -1,7 +1,7 @@
 class JobsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
-  before_action :set_job, only: [ :show, :edit, :update, :destroy, :change_status, :apply ]
-  before_action :authorize_job, only: [ :edit, :update, :destroy, :apply ]
+  before_action :set_job, only: [ :show, :edit, :update, :destroy, :change_status, :apply, :cancel_application ]
+  before_action :authorize_job, only: [ :edit, :update, :destroy, :apply, :cancel_application ]
 
   def index
     @jobs = Job.open.order(:id)
@@ -51,12 +51,21 @@ class JobsController < ApplicationController
 
   def apply
     @job_application = JobApplication.new(job_id: @job.id, user_id: current_user.id)
-    if @job_application.save
-      redirect_to job_path(@job)
-    else
-      render :show
+    @job_application.save
+  
+    respond_to do |format|
+      format.turbo_stream
     end
   end
+  
+  def cancel_application
+    @job_application = JobApplication.find_by(job_id: @job.id, user_id: current_user.id)
+    @job_application.destroy
+  
+    respond_to do |format|
+      format.turbo_stream
+    end
+  end  
 
   private
 

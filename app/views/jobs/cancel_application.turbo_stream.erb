@@ -3,5 +3,5 @@
 <% end %>
 
 <%= turbo_stream.append "notifications" do %>
-  <%= render "shared/notification", message: "Successfully cancelled the application", type: "error" %>
+  <%= render "shared/notification", message: "Application cancelled successfully", type: "info" %>
 <% end %>

@@ -1,0 +1,5 @@
+<%= turbo_stream.replace "job_application_#{@job_application.id}" do %>
+  <%= render "companies/job_applications/job_application", job_application: @job_application %>
+<% end %>
+
+

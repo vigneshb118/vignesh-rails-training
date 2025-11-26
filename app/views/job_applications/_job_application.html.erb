@@ -19,14 +19,21 @@
                   <strong>Company:</strong> <%= job_application.job.company.name %><br>
                   <strong>Salary:</strong> <%= number_to_currency(job_application.job.salary, precision: 0) %><br>
                 </span>
-                <span class="job-applications-status-badge">
+                <span class="job-applications-status-badge <%= job_application.status %>">
                   <%= job_application.status.humanize.titleize %>
                 </span>
-                <span class="job-applications-resume-link">
-                  <%= link_to "View Resume", job_application.resume.url, target: "_blank" %>
-                </span>
+                <% if job_application.resume.attached? %>
+                  <span class="job-applications-resume-link">
+                    <%= link_to "View Resume", job_application.resume, target: "_blank", rel: "noopener" %>
+                  </span>
+                <% end %>
               </p>
-              <%= link_to "Cancel Application", cancel_application_job_path(job_application.job), class: "job-applications-cancel-button", data: { turbo_method: :delete } %>
+              <% if job_application.applied? %>
+                <%= link_to "Cancel Application",
+                            cancel_application_job_path(job_application.job),
+                            class: "job-applications-cancel-button",
+                            data: { turbo_method: :delete } %>
+              <% end %>
             </div>
           </div>
         <% end %>

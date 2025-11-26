@@ -1,6 +1,7 @@
 class JobsController < ApplicationController
   before_action :authenticate_user!, except: [ :index, :show ]
   before_action :set_job, only: [ :show, :edit, :update, :destroy, :change_status, :apply, :cancel_application ]
+  before_action :set_job_application, only: [ :show ]
   before_action :authorize_job, only: [ :edit, :update, :destroy, :apply, :cancel_application ]
 
   def index
@@ -100,5 +101,9 @@ class JobsController < ApplicationController
 
   def authorize_job
     authorize @job
+  end
+
+  def set_job_application
+    @job_application = @job.job_applications.find_by(user_id: current_user.id)
   end
 end

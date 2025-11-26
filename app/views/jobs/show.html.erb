@@ -33,14 +33,22 @@
   <% if policy(@job).edit? %>
     <div class="mt-6">
       <%= link_to "Edit Job", edit_job_path(@job), class: "action-buttons", data: { turbo_frame: "_top" } %>
+      <%= link_to "View Applications", company_job_applications_path(@job.company, job_id: @job.id), class: "action-buttons", data: { turbo_frame: "_top" } %>
     </div>
   <% end %>
 
   <% if policy(@job).apply? %>
     <div data-controller="modal">
       <div class="mt-6" id="job_application_button_<%= @job.id %>">
-        <% if @job.job_applications.where(user_id: current_user.id).exists? %>
+        <% if @job_application&.applied? %>
           <%= link_to "Cancel Application", cancel_application_job_path(@job), class: "action-buttons", data: { turbo_method: :delete, turbo_frame: "_top" } %>
+        <% elsif @job_application.present? %>
+          <span class="job-applications-status-text">
+            Application status:
+            <span class="job-applications-status-badge <%= @job_application.status %>">
+              <%= @job_application.status.humanize.titleize %>
+            </span>
+          </span>
         <% else %>
           <button type="button" class="action-buttons" data-action="click->modal#open">
             Apply for this job
@@ -48,7 +56,7 @@
         <% end %>
       </div>
 
-      <% unless @job.job_applications.where(user_id: current_user.id).exists? %>
+      <% unless @job_application.present? %>
         <%= turbo_frame_tag "job_application_modal" do %>
           <div data-modal-target="container" class="modal hidden" data-action="click->modal#close">
             <div class="modal-dialog" data-action="click->modal#stop">

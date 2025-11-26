@@ -132,6 +132,18 @@
         @apply flex flex-col gap-4;
     }
 
+    .job-applications-page {
+        @apply mt-8;
+    }
+
+    .job-applications-meta {
+        @apply text-sm text-gray-600 block mb-3;
+    }
+
+    .job-applications-status-badge {
+        @apply inline-block text-sm font-medium rounded-full px-3 py-1 bg-blue-100 text-blue-800 border border-blue-300;
+    }
+
     .job-accordion {
         @apply bg-white border border-gray-200 shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-200;
     }
@@ -292,6 +304,26 @@
         button[type="submit"] {
             @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 cursor-pointer;
         }
+    }
+
+    .job-applications-empty-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-xl mx-auto mt-8 text-center rounded-lg;
+
+        h3 {
+            @apply text-xl font-bold text-blue-600 mb-3;
+        }
+
+        p {
+            @apply text-gray-600 mb-4;
+        }
+
+        a {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block;
+        }
+    }
+
+    .job-applications-cancel-button {
+        @apply inline-block mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors duration-200 cursor-pointer;
     }
 
     .profile-edit-card {

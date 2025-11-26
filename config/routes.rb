@@ -21,6 +21,8 @@ Rails.application.routes.draw do
     post :apply, on: :member
     delete :cancel_application, on: :member
   end
+  
+  resources :job_applications, only: [ :index ]
 
   resources :companies
 end

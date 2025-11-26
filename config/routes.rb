@@ -24,5 +24,7 @@ Rails.application.routes.draw do
   
   resources :job_applications, only: [ :index ]
 
-  resources :companies
+  resources :companies do
+    resources :job_applications, only: [ :index, :update ], module: :companies
+  end
 end

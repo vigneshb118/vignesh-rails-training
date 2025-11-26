@@ -1,6 +1,9 @@
 class JobApplication < ApplicationRecord
   belongs_to :user
   belongs_to :job
+  has_one_attached :resume, dependent: :destroy
+
+  validates_presence_of :resume
 
   enum :status, {
     applied: 0,

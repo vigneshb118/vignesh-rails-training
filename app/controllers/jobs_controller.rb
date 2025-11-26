@@ -61,6 +61,9 @@ class JobsController < ApplicationController
 
   def apply
     @job_application = JobApplication.new(job_id: @job.id, user_id: current_user.id)
+    if params[:job_application] && params[:job_application][:resume].present?
+      @job_application.resume.attach(params[:job_application][:resume])
+    end
     if @job_application.save
       respond_to do |format|
         format.turbo_stream

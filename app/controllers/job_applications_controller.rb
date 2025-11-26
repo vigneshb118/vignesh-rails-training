@@ -1,4 +1,6 @@
 class JobApplicationsController < ApplicationController
+    include ActiveStorage::SetCurrent
+
     before_action :authenticate_user!
 
     def index

@@ -13,6 +13,7 @@
     <div data-accordion-target="content" class="job-accordion-content">
       <p class="job-accordion-content-text"><%= simple_format(truncate(job.description, length: 400, separator: ' ')) %></p>
       <% if policy(job).edit? %>
+        <%= link_to "View Applications", company_job_applications_path(job.company, job_id: job.id), data: { turbo_frame: "_top" } %>
         <%= link_to "Edit", edit_job_path(job), data: { turbo_frame: "_top" } %>
       <% end %>
       <% if policy(job).archive? %>

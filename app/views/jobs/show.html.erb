@@ -35,12 +35,45 @@
       <%= link_to "Edit Job", edit_job_path(@job), class: "action-buttons", data: { turbo_frame: "_top" } %>
     </div>
   <% end %>
+
   <% if policy(@job).apply? %>
-    <div class="mt-6" id="job_application_button_<%= @job.id %>">
-      <% if @job.job_applications.where(user_id: current_user.id).exists? %>
-        <%= link_to "Cancel Application", cancel_application_job_path(@job), class: "action-buttons", data: { turbo_method: :delete } %>
-      <% else %>
-        <%= link_to "Apply for this job", apply_job_path(@job), class: "action-buttons", data: { turbo_method: :post } %>
+    <div data-controller="modal">
+      <div class="mt-6" id="job_application_button_<%= @job.id %>">
+        <% if @job.job_applications.where(user_id: current_user.id).exists? %>
+          <%= link_to "Cancel Application", cancel_application_job_path(@job), class: "action-buttons", data: { turbo_method: :delete, turbo_frame: "_top" } %>
+        <% else %>
+          <button type="button" class="action-buttons" data-action="click->modal#open">
+            Apply for this job
+          </button>
+        <% end %>
+      </div>
+
+      <% unless @job.job_applications.where(user_id: current_user.id).exists? %>
+        <%= turbo_frame_tag "job_application_modal" do %>
+          <div data-modal-target="container" class="modal hidden" data-action="click->modal#close">
+            <div class="modal-dialog" data-action="click->modal#stop">
+              <button type="button" class="modal-close-button" aria-label="Close" data-action="click->modal#close">
+                &times;
+              </button>
+              <h3 class="modal-title">Apply for <%= @job.title %></h3>
+              <p class="modal-body-text">
+                Upload your resume to complete your application.
+              </p>
+              <%= form_with model: JobApplication.new, url: apply_job_path(@job), html: { multipart: true }, data: { turbo_stream: true } do |f| %>
+                <div class="modal-field">
+                  <%= f.label :resume, "Resume (PDF, DOC, DOCX)", class: "modal-label" %>
+                  <%= f.file_field :resume, class: "modal-file-field" %>
+                </div>
+                <div class="modal-actions">
+                  <button type="button" class="modal-secondary-button" data-action="click->modal#close">
+                    Cancel
+                  </button>
+                  <%= f.submit "Submit Application", class: "modal-primary-button" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       <% end %>
     </div>
   <% end %>

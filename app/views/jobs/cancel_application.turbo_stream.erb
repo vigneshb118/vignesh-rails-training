@@ -1,0 +1,15 @@
+<%= turbo_stream.update "job_application_button_#{@job.id}" do %>
+  <%= link_to "Apply for this job", apply_job_path(@job), class: "action-buttons", data: { turbo_method: :post } %>
+<% end %>
+
+<% if current_user.job_applications.exists? %>
+  <%= turbo_stream.remove "job_application_#{@job_application.id}" %>
+<% else %>
+  <%= turbo_stream.replace "job_applications_list" do %>
+    <%= render "job_applications/empty_state" %>
+  <% end %>
+<% end %>
+
+<%= turbo_stream.append "notifications" do %>
+  <%= render "shared/notification", message: "Application cancelled successfully", type: "info" %>
+<% end %>

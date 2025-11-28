@@ -24,6 +24,17 @@
 
   <body>
     <%= render "layouts/navbar" %>
+    <div id="notifications" class="notifications-container">
+      <% flash.each do |type, message| %>
+        <% notification_type = case type.to_s
+             when 'notice', 'success' then 'success'
+             when 'alert', 'error' then 'error'
+             when 'warning' then 'warning'
+             else 'info'
+           end %>
+        <%= render "shared/notification", message: message, type: notification_type %>
+      <% end %>
+    </div>
     <%= yield %>
   </body>
 </html>

@@ -1,0 +1,15 @@
+<div class="company-jobs-container job-applications-page">
+  <h2>My Applications</h2>
+
+  <% if @job_applications.any? %>
+    <div id="job_applications_list">
+    <div class="company-jobs-list">
+      <% @job_applications.each do |job_application| %>
+        <%= render "job_applications/job_application", job_application: job_application %>
+      <% end %>
+    </div>
+    </div>
+  <% else %>
+    <%= render "job_applications/empty_state" %>
+  <% end %>
+</div>

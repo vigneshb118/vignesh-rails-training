@@ -132,6 +132,70 @@
         @apply flex flex-col gap-4;
     }
 
+    .job-applications-page {
+        @apply mt-8;
+    }
+
+    .job-applications-meta {
+        @apply text-sm text-gray-600 block mb-3;
+    }
+
+    .job-applications-status-badge {
+        @apply inline-block text-sm font-medium rounded-full px-3 py-1 border;
+
+        &.applied {
+            @apply bg-blue-100 text-blue-800 border-blue-300;
+        }
+
+        &.shortlisted {
+            @apply bg-emerald-100 text-emerald-800 border-emerald-300;
+        }
+
+        &.interview {
+            @apply bg-amber-100 text-amber-800 border-amber-300;
+        }
+
+        &.rejected {
+            @apply bg-red-100 text-red-800 border-red-300;
+        }
+
+        &.hired {
+            @apply bg-green-100 text-green-800 border-green-300;
+        }
+    }
+
+    .job-applications-resume-link {
+        @apply text-sm font-medium px-3 py-1;
+    }
+
+    .job-applications-status-form {
+        @apply mt-4 flex flex-wrap items-end gap-3;
+    }
+
+    .job-applications-status-field {
+        @apply flex flex-col;
+    }
+
+    .job-applications-status-label {
+        @apply text-sm font-medium text-gray-700 mb-1;
+    }
+
+    .job-applications-status-select {
+        @apply border border-gray-300 rounded-md px-3 py-1 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent;
+    }
+
+    .job-applications-status-actions {
+        @apply flex items-center;
+    }
+
+    .job-applications-status-button {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded-lg text-sm transition-colors duration-200;
+    }
+
+    .job-applications-status-text {
+        @apply text-sm text-gray-700;
+    }
+
     .job-accordion {
         @apply bg-white border border-gray-200 shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow duration-200;
     }
@@ -165,7 +229,7 @@
     }
 
     .job-accordion-content a {
-        @apply font-medium mr-4 transition-colors duration-200;
+        @apply font-medium text-sm mr-4 transition-colors duration-200;
     }
 
     .job-show-card {
@@ -294,6 +358,70 @@
         }
     }
 
+    .modal {
+        @apply fixed inset-0 bg-black/40 flex items-center justify-center z-50;
+    }
+
+    .modal-dialog {
+        @apply bg-white border border-gray-200 shadow-xl rounded-lg p-6 max-w-lg w-full mx-4 relative;
+    }
+
+    .modal-title {
+        @apply text-xl font-bold text-blue-600 mb-2 text-center;
+    }
+
+    .modal-body-text {
+        @apply text-sm text-gray-600 mb-4 text-center;
+    }
+
+    .modal-field {
+        @apply mb-4 text-left;
+    }
+
+    .modal-label {
+        @apply block text-sm font-medium text-gray-700 mb-2;
+    }
+
+    .modal-file-field {
+        @apply w-full border border-gray-300 rounded-md px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent;
+    }
+
+    .modal-actions {
+        @apply mt-4 flex justify-end gap-3;
+    }
+
+    .modal-primary-button {
+        @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors duration-200;
+    }
+
+    .modal-secondary-button {
+        @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm transition-colors duration-200;
+    }
+
+    .modal-close-button {
+        @apply absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl leading-none;
+    }
+
+    .job-applications-empty-card {
+        @apply bg-white border border-gray-200 shadow-lg p-8 max-w-xl mx-auto mt-8 text-center rounded-lg;
+
+        h3 {
+            @apply text-xl font-bold text-blue-600 mb-3;
+        }
+
+        p {
+            @apply text-gray-600 mb-4;
+        }
+
+        a {
+            @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 inline-block;
+        }
+    }
+
+    .job-applications-cancel-button {
+        @apply inline-block mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition-colors duration-200 cursor-pointer;
+    }
+
     .profile-edit-card {
         @apply bg-white border border-gray-200 shadow-lg p-8 max-w-2xl mx-auto rounded-lg;
         
@@ -334,6 +462,83 @@
 
         a {
             @apply text-blue-600 hover:text-blue-700 mt-4 inline-block;
+        }
+    }
+
+    .job-show-card .action-buttons {
+        @apply bg-blue-600 hover:text-gray-300 text-white font-semibold py-2 px-6 rounded-lg duration-200 inline-block text-center cursor-pointer;
+    }
+
+    .notifications-container {
+        @apply fixed bottom-4 left-4 z-50 flex flex-col gap-2;
+        max-width: 400px;
+    }
+
+    .notification {
+        @apply bg-white border border-gray-200 shadow-lg rounded-lg p-4 transform transition-all duration-300 ease-in-out;
+        animation: slideInLeft 0.3s ease-out;
+    }
+
+    .notification.notification-success {
+        @apply border-green-500 bg-green-50;
+    }
+
+    .notification.notification-error {
+        @apply border-red-500 bg-red-50;
+    }
+
+    .notification.notification-info {
+        @apply border-blue-500 bg-blue-50;
+    }
+
+    .notification.notification-warning {
+        @apply border-yellow-500 bg-yellow-50;
+    }
+
+    .notification.notification-hiding {
+        animation: slideOutLeft 0.3s ease-in forwards;
+    }
+
+    .notification-content {
+        @apply flex items-center justify-between gap-3;
+    }
+
+    .notification-message {
+        @apply text-sm font-medium text-gray-900 flex-1;
+    }
+
+    .notification-close {
+        @apply flex-shrink-0 p-1 rounded-md hover:bg-gray-200 transition-colors duration-200 cursor-pointer;
+        @apply focus:outline-none focus:ring-2 focus:ring-gray-400;
+    }
+
+    .notification-close-icon {
+        @apply w-4 h-4 text-gray-600;
+    }
+
+    .notification:hover .notification-close-icon {
+        @apply text-gray-900;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideOutLeft {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(-100%);
+            opacity: 0;
         }
     }
 }

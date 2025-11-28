@@ -1,2 +1,6 @@
-<h1>New Job</h1>
-<%= render "form" %>
+<%= turbo_frame_tag "jobs" do %>
+<div class="job-edit-card">
+  <h1>New Job</h1>
+  <%= render "form" %>
+</div>
+<% end %>

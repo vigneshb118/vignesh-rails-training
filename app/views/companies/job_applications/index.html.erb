@@ -1,0 +1,17 @@
+<div class="company-jobs-container">
+  <h2>Applications for <%= @job.title %></h2>
+
+  <% if @job_applications.any? %>
+    <div class="company-jobs-list">
+      <% @job_applications.each do |job_application| %>
+        <%= render "companies/job_applications/job_application", job_application: job_application %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="job-applications-empty-card">
+      <h3>No applications yet</h3>
+      <p>Candidates who apply to this job will appear here.</p>
+      <%= link_to "Back to Job", job_path(@job), data: { turbo_frame: "_top" } %>
+    </div>
+  <% end %>
+</div>

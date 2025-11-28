@@ -1,0 +1,55 @@
+<%= turbo_frame_tag "job_application_#{job_application.id}" do %>
+  <div data-controller="accordion" data-accordion-open-value="false" class="job-accordion">
+    <button data-action="accordion#toggle" class="job-accordion-button">
+        <span class="job-accordion-button-text">
+          <span>
+            <%= job_application.user.first_name %> <%= job_application.user.last_name %>
+          </span>
+          <span class="job-applications-status-badge <%= job_application.status %>">
+            <%= job_application.status.humanize.titleize %>
+          </span>
+        </span>
+      <svg data-accordion-target="iconClosed" class="job-accordion-icon-closed" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <svg data-accordion-target="iconOpen" class="job-accordion-icon-open hidden" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+      </svg>
+    </button>
+
+    <div data-accordion-target="content" class="job-accordion-content">
+      <p class="job-accordion-content-text">
+        <span class="job-applications-meta">
+          <strong>Email:</strong> <%= job_application.user.email %><br>
+          <strong>Applied on:</strong> <%= l(job_application.created_at) %><br>
+        </span>
+
+        <% if job_application.resume.attached? %>
+          <%= link_to "View Resume", job_application.resume, target: "_blank", rel: "noopener", class: "job-applications-resume-link" %>
+        <% else %>
+          <span class="job-applications-resume-link">No resume uploaded</span>
+        <% end %>
+      </p>
+
+      <div class="job-applications-status-form">
+        <%= form_with model: [@company, job_application],
+                      url: company_job_application_path(@company, job_application),
+                      method: :patch,
+                      data: { turbo_stream: true } do |f| %>
+          <div class="job-applications-status-field">
+            <%= f.label :status, "Status", class: "job-applications-status-label" %>
+            <%= f.select :status,
+                         JobApplication.statuses.keys.reject { |s| s == "applied" }.map { |s| [s.humanize.titleize, s] },
+                         {},
+                         class: "job-applications-status-select" %>
+          </div>
+          <div class="job-applications-status-actions">
+            <%= f.submit "Update Status", class: "job-applications-status-button" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>
+
+

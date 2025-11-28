@@ -1,0 +1,275 @@
+name: Cursor Code Review
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+  issues: write
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    # Only run if PR has "AI-Review" label
+    if: |
+      (github.event.action == 'labeled' && github.event.label.name == 'AI-Review') ||
+      (github.event.action == 'synchronize')
+    permissions:
+      pull-requests: write
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+
+      - name: Configure git identity
+        run: |
+          git config user.name "Cursor Agent"
+          git config user.email "cursoragent@cursor.com"
+
+      - name: Verify AI-Review label
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Verifying PR has 'AI-Review' label..."
+          PR_LABELS=$(gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels --jq '.[].name' 2>/dev/null || echo "")
+          if echo "$PR_LABELS" | grep -q "AI-Review"; then
+            echo "✅ PR has 'AI-Review' label. Proceeding with review."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          else
+            echo "⚠️ PR does not have 'AI-Review' label. Skipping review."
+            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
+          fi
+
+      - name: Check for unresolved comments
+        if: env.SKIP_REVIEW == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for unresolved review comments..."
+          
+          # Get all review comments from this bot
+          REVIEW_COMMENTS_JSON=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate 2>/dev/null || echo "[]")
+          
+          # Get all reviews to check the review state
+          PR_REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot")' 2>/dev/null || echo "[]")
+          
+          # Count bot comments
+          BOT_COMMENT_COUNT=$(echo "$REVIEW_COMMENTS_JSON" | jq -r '[.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot")] | length')
+          
+          echo "Found $BOT_COMMENT_COUNT bot review comments"
+          
+          # Check if PR has "CHANGES_REQUESTED" state from the bot
+          CHANGES_REQUESTED=$(echo "$PR_REVIEWS" | jq -r '.[] | select(.state == "CHANGES_REQUESTED") | .id' | head -1)
+          
+          # Check the event type - if it's "synchronize" (new commit), allow workflow to run
+          # because user is actively working on addressing comments
+          EVENT_TYPE="${{ github.event.action }}"
+          
+          # If there are no bot comments, there's nothing to resolve
+          if [ "$BOT_COMMENT_COUNT" -eq 0 ]; then
+            echo "✅ No bot comments found. Proceeding with review."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If this is a new commit (synchronize), allow workflow to run even if comments exist
+          # because the user is actively working on addressing them
+          elif [ "${{ github.event.action }}" = "synchronize" ]; then
+            echo "✅ New commit detected. Allowing review to run (user is addressing comments)."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If there are comments but PR doesn't have "CHANGES_REQUESTED" state, assume comments are resolved
+          elif [ -z "$CHANGES_REQUESTED" ]; then
+            echo "✅ Bot comments exist but PR doesn't have 'CHANGES_REQUESTED' state. Assuming comments are resolved."
+            echo "SKIP_REVIEW=false" >> $GITHUB_ENV
+          # If PR has "CHANGES_REQUESTED" and this is the initial "labeled" event, skip to avoid duplicate
+          else
+            echo "⚠️ PR has 'CHANGES_REQUESTED' state with bot comments on initial label. Skipping to avoid duplicate reviews."
+            echo "Push a new commit to trigger the review again after addressing comments."
+            echo "SKIP_REVIEW=true" >> $GITHUB_ENV
+          fi
+
+      - name: Perform automated code review
+        if: env.SKIP_REVIEW == 'false'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          MODEL: Auto
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BLOCKING_REVIEW: ${{ vars.BLOCKING_REVIEW || 'false' }}
+        run: |
+          PROMPT=$(cat <<'PROMPT_EOF'
+          You are operating in a GitHub Actions runner performing automated code review. The gh CLI is available and authenticated via GH_TOKEN. You may comment on pull requests.
+
+          Context:
+          - Repo: ${{ github.repository }}
+          - PR Number: ${{ github.event.pull_request.number }}
+          - PR Head SHA: ${{ github.event.pull_request.head.sha }}
+          - PR Base SHA: ${{ github.event.pull_request.base.sha }}
+          - Blocking Review: ${{ env.BLOCKING_REVIEW }}
+
+          Objectives:
+          1) Re-check existing review comments and reply resolved when addressed.
+          2) Review the current PR diff and flag only clear, high-severity issues.
+          3) Leave very short inline comments (1-2 sentences) on changed lines only and a brief summary at the end.
+
+          Procedure:
+          - Get existing comments: gh pr view --json comments
+          - Get all review comments with their exact positions: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | {path: .path, line: .line, position: .original_line, body: .body, state: .state}'
+          - Get diff: gh pr diff
+          - Get changed files with patches to compute inline positions: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files --paginate --jq '.[] | {filename,patch}'
+          - CRITICAL: Before posting any comment, check if there is already an existing comment on the EXACT same file path and line/position. If a comment exists on the same line (matching path and line number), DO NOT post a duplicate comment. Skip that issue entirely.
+          - Compute exact inline anchors for each issue (file path + diff position). Comments MUST be placed inline on the changed line in the diff, not as top-level comments.
+          - Detect prior top-level "no issues" style comments authored by this bot (match bodies like: "✅ no issues", "No issues found", "LGTM", "Cursor Review done").
+          - If CURRENT run finds issues and any prior "no issues" comments exist:
+            - Prefer to remove them to avoid confusion:
+              - Try deleting top-level issue comments via: gh api -X DELETE repos/${{ github.repository }}/issues/comments/<comment_id>
+              - If deletion isn't possible, minimize them via GraphQL (minimizeComment) or edit to prefix "[Superseded by new findings]".
+            - If neither delete nor minimize is possible, reply to that comment: "⚠️ Superseded: issues were found in newer commits".
+          - If a previously reported issue appears fixed by nearby changes, reply: ✅ This issue appears to be resolved by the recent changes
+          - Analyze ONLY for:
+            - Null/undefined dereferences
+            - Resource leaks (unclosed files or connections)
+            - Injection (SQL/XSS)
+            - Concurrency/race conditions
+            - Missing error handling for critical operations
+            - Obvious logic errors with incorrect behavior
+            - Clear performance anti-patterns with measurable impact
+            - Definitive security vulnerabilities
+          - STRICT DUPLICATE PREVENTION: For each issue you want to comment on, first check the existing comments list. If ANY comment exists on the same file path AND same line number (or within 2 lines), DO NOT post a new comment. This prevents duplicate comments on the same lines.
+
+          Commenting rules:
+          - Max 10 inline comments total; prioritize the most critical issues
+          - One issue per comment; place on the exact changed line
+          - All issue comments MUST be inline (anchored to a file and line/position in the PR diff)
+          - Natural tone, specific and actionable; do not mention automated or high-confidence
+          - Use emojis: 🚨 Critical 🔒 Security ⚡ Performance ⚠️ Logic ✅ Resolved ✨ Improvement
+
+          Submission:
+          - If there are NO issues to report and an existing top-level comment indicating "no issues" already exists (e.g., "✅ no issues", "No issues found", "LGTM", "Cursor Review done"), do NOT submit another comment. Skip submission to avoid redundancy.
+          - If there are NO issues to report and NO prior "no issues" comment exists, submit one brief summary comment with EXACT text: "Cursor Review done and PR is ready for dev review"
+          - If there ARE issues to report and a prior "no issues" comment exists, ensure that prior comment is deleted/minimized/marked as superseded before submitting the new review.
+          - If there ARE issues to report, submit ONE review containing ONLY inline comments plus an optional concise summary body. Use the GitHub Reviews API to ensure comments are inline:
+            - Build a JSON array of comments like: [{ "path": "<file>", "position": <diff_position>, "body": "..." }]
+            - Submit via: gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews -f event=COMMENT -f body="$SUMMARY" -f comments='[$COMMENTS_JSON]'
+          - Do NOT use: gh pr review --approve or --request-changes
+          - After submitting a "no issues" comment, set environment variable: echo "NO_ISSUES_FOUND=true" >> $GITHUB_ENV
+          - If issues are found, set: echo "NO_ISSUES_FOUND=false" >> $GITHUB_ENV
+          - Always set NO_ISSUES_FOUND at the end
+          - Track high severity comments: If any comment contains 🚨 (Critical) or 🔒 (Security) emoji, set: echo "HIGH_SEVERITY_COMMENTS=true" >> $GITHUB_ENV
+          - If no high severity comments were posted, set: echo "HIGH_SEVERITY_COMMENTS=false" >> $GITHUB_ENV
+          - Always set HIGH_SEVERITY_COMMENTS at the end
+
+          Blocking behavior:
+          - If BLOCKING_REVIEW is true and any 🚨 or 🔒 issues were posted: echo "CRITICAL_ISSUES_FOUND=true" >> $GITHUB_ENV
+          - Otherwise: echo "CRITICAL_ISSUES_FOUND=false" >> $GITHUB_ENV
+          - Always set CRITICAL_ISSUES_FOUND at the end
+          PROMPT_EOF
+          )
+          cursor-agent --force --model "$MODEL" --output-format=text --print "$PROMPT"
+
+      - name: Check blocking review results
+        if: env.SKIP_REVIEW == 'false' && env.BLOCKING_REVIEW == 'true'
+        run: |
+          echo "Checking for critical issues..."
+          echo "CRITICAL_ISSUES_FOUND: ${CRITICAL_ISSUES_FOUND:-unset}"
+
+          if [ "${CRITICAL_ISSUES_FOUND:-false}" = "true" ]; then
+            echo "❌ Critical issues found and blocking review is enabled. Failing the workflow."
+            exit 1
+          else
+            echo "✅ No blocking issues found."
+          fi
+
+      - name: Request changes for high severity issues
+        if: env.SKIP_REVIEW == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Checking for high severity comments..."
+          
+          # Get all review comments posted by the bot in this PR
+          REVIEW_COMMENTS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot") | .body' 2>/dev/null || echo "")
+          
+          # Check if any comment contains high severity emojis (🚨 or 🔒)
+          HIGH_SEVERITY_FOUND=false
+          if echo "$REVIEW_COMMENTS" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+            echo "Found high severity emoji in review comments"
+          fi
+          
+          # Also check the most recent review body for high severity indicators
+          LATEST_REVIEW=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[-1].body // empty' 2>/dev/null || echo "")
+          if [ -n "$LATEST_REVIEW" ] && echo "$LATEST_REVIEW" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+            echo "Found high severity emoji in review body"
+          fi
+          
+          if [ "$HIGH_SEVERITY_FOUND" = "true" ]; then
+            echo "🚨 High severity issues found. Requesting changes on PR..."
+            gh pr review ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --request-changes
+            echo "PR status changed to 'Changes requested'."
+          else
+            echo "✅ No high severity issues found. PR review status unchanged."
+          fi
+
+      - name: Manage labels based on review results
+        if: env.SKIP_REVIEW == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Managing labels based on review results..."
+          
+          # Check for high severity comments
+          REVIEW_COMMENTS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/comments --paginate --jq '.[] | select(.user.login == "github-actions[bot]" or .user.type == "Bot") | .body' 2>/dev/null || echo "")
+          HIGH_SEVERITY_FOUND=false
+          if echo "$REVIEW_COMMENTS" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+          fi
+          
+          LATEST_REVIEW=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews --jq '.[-1].body // empty' 2>/dev/null || echo "")
+          if [ -n "$LATEST_REVIEW" ] && echo "$LATEST_REVIEW" | grep -qE "🚨|🔒"; then
+            HIGH_SEVERITY_FOUND=true
+          fi
+          
+          # Check if no issues were found
+          if [ "${NO_ISSUES_FOUND:-false}" = "true" ] && [ "$HIGH_SEVERITY_FOUND" = "false" ]; then
+            echo "✅ No issues found. Managing labels..."
+            
+            # Remove AI-Review label
+            echo "Removing 'AI-Review' label..."
+            gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/AI-Review \
+              --method DELETE 2>/dev/null || echo "Label 'AI-Review' not found or already removed"
+            
+            # Ensure Ready-for-code-review label exists (create if it doesn't)
+            echo "Ensuring 'Ready-for-code-review' label exists..."
+            gh label list --repo ${{ github.repository }} --json name --jq '.[].name' | grep -q "Ready-for-code-review" || \
+            gh label create "Ready-for-code-review" --repo ${{ github.repository }} --description "PR is ready for human code review" --color "0E8A16" 2>/dev/null || echo "Label may already exist"
+            
+            # Add Ready-for-code-review label
+            echo "Adding 'Ready-for-code-review' label..."
+            gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+              --method POST \
+              --raw-field labels='["Ready-for-code-review"]' 2>/dev/null || echo "Failed to add label, trying alternative method..."
+            
+            # Alternative method if the above fails
+            if ! gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels --jq '.[].name' | grep -q "Ready-for-code-review"; then
+              echo '{"labels":["Ready-for-code-review"]}' | gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels \
+                --method POST \
+                --input - 2>/dev/null || echo "Label addition may have failed"
+            fi
+            
+            echo "✅ Labels updated: Removed 'AI-Review', Added 'Ready-for-code-review'"
+          elif [ "$HIGH_SEVERITY_FOUND" = "true" ]; then
+            echo "🚨 High severity issues found. Keeping 'AI-Review' label."
+            echo "PR still needs attention before it can be marked as ready for code review."
+          else
+            echo "⚠️ Issues found but no high severity. Keeping 'AI-Review' label."
+          fi
+

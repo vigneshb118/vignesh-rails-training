@@ -1,0 +1,39 @@
+<%= turbo_frame_tag "job_application_#{job_application.id}" do %>
+          <div data-controller="accordion" data-accordion-open-value="false" class="job-accordion">
+            <button data-action="accordion#toggle" class="job-accordion-button">
+              <span class="job-accordion-button-text">
+                <%= job_application.job.title %>
+                <span class="job-accordion-button-text-type"><%= job_application.job.job_type.humanize.titleize %></span>
+              </span>
+              <svg data-accordion-target="iconClosed" class="job-accordion-icon-closed" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <svg data-accordion-target="iconOpen" class="job-accordion-icon-open hidden" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+              </svg>
+            </button>
+
+            <div data-accordion-target="content" class="job-accordion-content">
+              <p class="job-accordion-content-text">
+                <span class="job-applications-meta">
+                  <strong>Company:</strong> <%= job_application.job.company.name %><br>
+                  <strong>Salary:</strong> <%= number_to_currency(job_application.job.salary, precision: 0) %><br>
+                </span>
+                <span class="job-applications-status-badge <%= job_application.status %>">
+                  <%= job_application.status.humanize.titleize %>
+                </span>
+                <% if job_application.resume.attached? %>
+                  <span class="job-applications-resume-link">
+                    <%= link_to "View Resume", job_application.resume, target: "_blank", rel: "noopener" %>
+                  </span>
+                <% end %>
+              </p>
+              <% if job_application.applied? %>
+                <%= link_to "Cancel Application",
+                            cancel_application_job_path(job_application.job),
+                            class: "job-applications-cancel-button",
+                            data: { turbo_method: :delete } %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>

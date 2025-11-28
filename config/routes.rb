@@ -18,7 +18,13 @@ Rails.application.routes.draw do
 
   resources :jobs do
     patch :change_status, on: :member
+    post :apply, on: :member
+    delete :cancel_application, on: :member
   end
+  
+  resources :job_applications, only: [ :index ]
 
-  resources :companies
+  resources :companies do
+    resources :job_applications, only: [ :index, :update ], module: :companies
+  end
 end

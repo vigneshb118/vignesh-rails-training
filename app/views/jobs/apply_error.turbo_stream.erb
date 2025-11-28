@@ -1,0 +1,4 @@
+<%= turbo_stream.append "notifications" do %>
+  <%= render "shared/notification", message: "Failed to apply: #{@job_application.errors.full_messages.join(', ')}", type: "error" %>
+<% end %>
+
